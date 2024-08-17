@@ -1,14 +1,6 @@
 import * as vscode from 'vscode';
 
 const DEFAULT_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 't', 's', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '.', '/', ';', '[', ']', '-', '='];
-const MISSING_LABEL_DECORATION = vscode.window.createTextEditorDecorationType({
-    backgroundColor: 'var(--vscode-editorOverviewRuler-findMatchForeground)',
-    after: {
-        contentText: '!',
-        backgroundColor: 'var(--vscode-button-background)',
-        color: 'white'
-    }
-});
 
 export function getOccurences(textEditor: vscode.TextEditor, searchStr: string, matchCase: boolean) {
     const visibleRange = textEditor.visibleRanges[0];
@@ -35,14 +27,16 @@ export function getOccurences(textEditor: vscode.TextEditor, searchStr: string, 
     return foundRanges;
 }
 
-export function getLabelDecorations(textEditor: vscode.TextEditor, ranges: vscode.Range[], searchStr: string): vscode.TextEditorDecorationType[] {
+export function getLabelDecorations(textEditor: vscode.TextEditor, ranges: vscode.Range[], searchStr: string): [string[], vscode.TextEditorDecorationType[]] {
     const nextCharacters = ranges.map(range => textEditor.document.getText(new vscode.Range(range.start, new vscode.Position(range.end.line, range.end.character + 1))).charAt(searchStr.length).toLowerCase());
+    const labels = [];
     const labelDecorations = [];
 
     for (let label of DEFAULT_LABELS) {
         if (labelDecorations.length >= ranges.length) break;
         if (nextCharacters.includes(label)) continue;
 
+        labels.push(label);
         labelDecorations.push(
             vscode.window.createTextEditorDecorationType({
                 backgroundColor: 'var(--vscode-editorOverviewRuler-findMatchForeground)',
@@ -55,13 +49,13 @@ export function getLabelDecorations(textEditor: vscode.TextEditor, ranges: vscod
         );
     }
 
-    return labelDecorations;
+    return [labels, labelDecorations];
 }
 
 export function setHighlights(textEditor: vscode.TextEditor, labelDecorations: vscode.TextEditorDecorationType[], ranges: vscode.Range[]) {
     if (ranges.length > labelDecorations.length) console.info('Could not create enough unique labels.');
 
     for (let i = 0; i < Math.max(ranges.length, labelDecorations.length); i++) {
-        textEditor.setDecorations(labelDecorations[i] ?? MISSING_LABEL_DECORATION, ranges[i] ? [ranges[i]] : []);
+        textEditor.setDecorations(labelDecorations[i], ranges[i] ? [ranges[i]] : []);
     }
 }

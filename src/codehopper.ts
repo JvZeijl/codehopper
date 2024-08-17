@@ -14,7 +14,9 @@ export class Codehopper {
     private inputBox: vscode.InputBox | null = null;
     private buttons = new Map<vscode.QuickInputButton, () => void>();
 
-    private currentLabels: vscode.TextEditorDecorationType[] = [];
+    private currentRanges: vscode.Range[] = [];
+    private currentLabels: string[] = [];
+    private currentLabelDecorations: vscode.TextEditorDecorationType[] = [];
     
     get matchCase() {
         return this.context.globalState.get<boolean>(MATCH_CASE_STATE_KEY, false);
@@ -54,12 +56,11 @@ export class Codehopper {
             this.activeTextEditor.setDecorations(NO_HIGHLIGHT_DECORATION, []);
         }
         
-        setHighlights(this.activeTextEditor, this.currentLabels, []);
+        this.clearLabels();
         this.inputBox.dispose();
         this.buttons.clear();
         this.inputBox = null;
         this.activeTextEditor = null;
-        this.currentLabels = [];
     }
 
     toggleMatchCase() {
@@ -72,18 +73,34 @@ export class Codehopper {
             return;
         }
     
+        // Search string validation
         if (searchStr.length < 2) {
             this.inputBox.validationMessage = { message: 'Use at least two characters', severity: vscode.InputBoxValidationSeverity.Warning };
+            this.clearLabels();
             return;
         } else this.inputBox.validationMessage = undefined;
 
-        // Clear the old labels before generating the new ones
-        setHighlights(this.activeTextEditor, this.currentLabels, []);
+        // Check if one of the options is selected
+        for (let i = 0; i < this.currentRanges.length; i++) {
+            if (!this.currentLabels[i]) break;
 
-        const ranges = getOccurences(this.activeTextEditor, searchStr, this.matchCase);
-        this.currentLabels = getLabelDecorations(this.activeTextEditor, ranges, searchStr);
-        
-        setHighlights(this.activeTextEditor, this.currentLabels, ranges);
+            const matchStr = this.activeTextEditor.document.getText(this.currentRanges[i]) + this.currentLabels[i];
+            if ((this.matchCase && matchStr === searchStr) || matchStr.toLowerCase() === searchStr.toLowerCase()) {
+                this.selectAndClose(this.currentRanges[i]);
+                break;
+            }
+        }
+
+        // Clear the old labels before generating the new ones
+        this.clearLabels();
+
+        this.currentRanges = getOccurences(this.activeTextEditor, searchStr, this.matchCase);
+        const [labels, labelDecorations] = getLabelDecorations(this.activeTextEditor, this.currentRanges, searchStr);
+        this.currentLabels = labels;
+        this.currentLabelDecorations = labelDecorations;
+
+
+        setHighlights(this.activeTextEditor, this.currentLabelDecorations, this.currentRanges);
     }
 
     private createInputBox() {
@@ -114,5 +131,27 @@ export class Codehopper {
 
     private onButtonClick(triggeredBtn: vscode.QuickInputButton) {
         this.buttons.get(triggeredBtn)?.call(this);
+    }
+
+    private selectAndClose(range: vscode.Range) {
+        if (this.activeTextEditor === null) {
+            console.error('Codehopper is not open.');
+            return;
+        }
+
+        this.activeTextEditor.selection = new vscode.Selection(range.start, range.start);
+        this.close();
+    }
+
+    private clearLabels() {
+        if (this.activeTextEditor === null) {
+            console.error('Codehopper is not open.');
+            return;
+        }
+
+        setHighlights(this.activeTextEditor, this.currentLabelDecorations, []);
+        this.currentRanges = [];
+        this.currentLabels = [];
+        this.currentLabelDecorations = [];
     }
 }
