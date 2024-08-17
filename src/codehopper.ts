@@ -17,6 +17,8 @@ export class Codehopper {
     private currentRanges: vscode.Range[] = [];
     private currentLabels: string[] = [];
     private currentLabelDecorations: vscode.TextEditorDecorationType[] = [];
+
+    private scrollListener: vscode.Disposable | null = null;
     
     get matchCase() {
         return this.context.globalState.get<boolean>(MATCH_CASE_STATE_KEY, false);
@@ -41,6 +43,14 @@ export class Codehopper {
         this.inputBox.valueSelection = undefined; // Setting to undefined selects the whole input.
         this.inputBox.show();
 
+        this.scrollListener = vscode.window.onDidChangeTextEditorVisibleRanges(e => {
+            if (this.disableHighlightingWhenHopping) {
+                e.textEditor.setDecorations(NO_HIGHLIGHT_DECORATION, e.visibleRanges);
+            }
+            
+            this.search(this.inputBox?.value ?? '');
+        });
+
         if (this.disableHighlightingWhenHopping) {
             this.activeTextEditor.setDecorations(NO_HIGHLIGHT_DECORATION, this.activeTextEditor.visibleRanges);
         }
@@ -57,6 +67,7 @@ export class Codehopper {
         }
         
         this.clearLabels();
+        this.scrollListener?.dispose();
         this.inputBox.dispose();
         this.buttons.clear();
         this.inputBox = null;
