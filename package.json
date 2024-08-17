@@ -1,6 +1,6 @@
 {
   "name": "codehopper",
-  "displayName": "codehopper",
+  "displayName": "Codehopper",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -24,6 +24,18 @@
         "key": "ctrl+' ctrl+'",
         "mac": "cmd+' cmd+'",
         "when": "editorTextFocus"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Codehopper",
+        "properties": {
+          "codehopper.disableHighlightingWhenHopping": {
+            "type": "boolean",
+            "default": true,
+            "description": "Determines if all the syntax highlighting is disabled during hopping."
+          }
+        }
       }
     ]
   },
