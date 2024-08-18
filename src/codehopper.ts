@@ -16,6 +16,7 @@ export class Codehopper {
     private currentRanges: vscode.Range[] = [];
     private currentLabels: string[] = [];
     private currentLabelDecorations: vscode.TextEditorDecorationType[] = [];
+    private currentSearchStr = '';
 
     private scrollListener: vscode.Disposable | null = null;
     
@@ -68,6 +69,7 @@ export class Codehopper {
         this.buttons.clear();
         this.inputBox = null;
         this.activeTextEditor = null;
+        this.currentSearchStr = '';
     }
 
     toggleMatchCase() {
@@ -105,21 +107,21 @@ export class Codehopper {
         } else this.inputBox.validationMessage = undefined;
 
         // Check if one of the options is selected
-        for (let i = 0; i < this.currentRanges.length; i++) {
-            if (!this.currentLabels[i]) break;
+        // Only check if a a character was added at the end of the searchStr
+        const canCheck = searchStr.length > this.currentSearchStr.length && searchStr.startsWith(this.currentSearchStr);
+        const potentialLabelIndex = this.currentLabels.indexOf(searchStr.charAt(searchStr.length - 1));
 
-            const matchStr = this.activeTextEditor.document.getText(this.currentRanges[i]) + this.currentLabels[i];
-            if ((this.matchCase && matchStr === searchStr) || matchStr.toLowerCase() === searchStr.toLowerCase()) {
-                this.selectAndClose(this.currentRanges[i]);
-                return;
-            }
+        if (canCheck && potentialLabelIndex !== -1) {
+            this.selectAndClose(this.currentRanges[potentialLabelIndex]);
+            return;
         }
 
         // Clear the old labels before generating the new ones
         this.clearLabels();
 
+        this.currentSearchStr = searchStr;
         this.currentRanges = getOccurences(this.activeTextEditor, searchStr, this.matchCase);
-        const [labels, labelDecorations] = getLabelDecorations(this.activeTextEditor, this.currentRanges, searchStr);
+        const [labels, labelDecorations] = getLabelDecorations(this.activeTextEditor, this.currentRanges, searchStr, this.matchCase);
         this.currentLabels = labels;
         this.currentLabelDecorations = labelDecorations;
 

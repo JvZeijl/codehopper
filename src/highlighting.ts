@@ -26,14 +26,17 @@ export function getOccurences(textEditor: vscode.TextEditor, searchStr: string, 
     return foundRanges;
 }
 
-export function getLabelDecorations(textEditor: vscode.TextEditor, ranges: vscode.Range[], searchStr: string): [string[], vscode.TextEditorDecorationType[]] {
-    const nextCharacters = ranges.map(range => textEditor.document.getText(new vscode.Range(range.start, new vscode.Position(range.end.line, range.end.character + 1))).charAt(searchStr.length).toLowerCase());
+export function getLabelDecorations(textEditor: vscode.TextEditor, ranges: vscode.Range[], searchStr: string, matchCase: boolean): [string[], vscode.TextEditorDecorationType[]] {
     const labels = [];
     const labelDecorations = [];
+    const nextCharacters = ranges.map(range => {
+        const chr = textEditor.document.getText(new vscode.Range(range.start, new vscode.Position(range.end.line, range.end.character + 1))).charAt(searchStr.length);
+        return matchCase ? chr : chr.toLowerCase();
+    });
 
     for (let label of parseLabelsFromSettings()) {
         if (labelDecorations.length >= ranges.length) break;
-        if (nextCharacters.includes(label)) continue;
+        if (nextCharacters.includes(matchCase ? label : label.toLowerCase())) continue;
 
         labels.push(label);
         labelDecorations.push(
