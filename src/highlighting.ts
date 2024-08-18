@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
+import { getSetting } from './settings';
 
-const DEFAULT_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 't', 's', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '.', '/', ';', '[', ']', '-', '='];
+const DEFAULT_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 't', 's', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'S', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '.', '/', ';', '\\', '[', ']', '-', '=', '<', '>', '?', ':', '|', '{', '}', '_', '+', '!', '@', '#', '$', '%', '&', '*', '(', ')'];
 
 export function getOccurences(textEditor: vscode.TextEditor, searchStr: string, matchCase: boolean) {
     const visibleRange = textEditor.visibleRanges[0];
@@ -32,7 +33,7 @@ export function getLabelDecorations(textEditor: vscode.TextEditor, ranges: vscod
     const labels = [];
     const labelDecorations = [];
 
-    for (let label of DEFAULT_LABELS) {
+    for (let label of parseLabelsFromSettings()) {
         if (labelDecorations.length >= ranges.length) break;
         if (nextCharacters.includes(label)) continue;
 
@@ -58,4 +59,8 @@ export function setHighlights(textEditor: vscode.TextEditor, labelDecorations: v
     for (let i = 0; i < Math.max(ranges.length, labelDecorations.length); i++) {
         textEditor.setDecorations(labelDecorations[i], ranges[i] ? [ranges[i]] : []);
     }
+}
+
+export function parseLabelsFromSettings() {
+    return getSetting('segmentLabels', '').split(' ').filter((label, index, array) => array.indexOf(label) === index);
 }
