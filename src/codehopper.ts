@@ -100,8 +100,8 @@ export class Codehopper {
         }
     
         // Search string validation
-        if (searchStr.length < 2) {
-            this.inputBox.validationMessage = { message: 'Use at least two characters', severity: vscode.InputBoxValidationSeverity.Warning };
+        if (searchStr.length < 1) {
+            this.inputBox.validationMessage = { message: 'Use at least one character', severity: vscode.InputBoxValidationSeverity.Warning };
             this.clearLabels();
             return;
         } else this.inputBox.validationMessage = undefined;
