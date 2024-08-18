@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { Codehopper } from './codehopper';
 
+export const MATCH_CASE_STATE_KEY = 'codehopperMatchCase';
+
 export function activate(context: vscode.ExtensionContext) {
 	let codehopper = new Codehopper(context);
 	
@@ -12,7 +14,11 @@ export function activate(context: vscode.ExtensionContext) {
 		codehopper.open(textEditor);
 	});
 
-	context.subscriptions.push(openHopperCommand, settingsListener);
+	const toggleMatchCaseCommand = vscode.commands.registerCommand('codehopper.toggleMatchCase', () => {
+		codehopper.toggleMatchCase();
+	});
+
+	context.subscriptions.push(settingsListener, openHopperCommand, toggleMatchCaseCommand);
 }
 
 export function deactivate() {

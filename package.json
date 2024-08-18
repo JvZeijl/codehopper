@@ -24,6 +24,11 @@
         "key": "ctrl+' ctrl+'",
         "mac": "cmd+' cmd+'",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "codehopper.toggleMatchCase",
+        "key": "ctrl+' c",
+        "mac": "cmd+' c"
       }
     ],
     "configuration": [

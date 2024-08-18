@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { getSetting } from "./settings";
 import { getLabelDecorations, getOccurences, setHighlights } from "./highlighting";
+import { MATCH_CASE_STATE_KEY } from "./extension";
 
-const MATCH_CASE_STATE_KEY = 'codehopperMatchCase';
 const NO_HIGHLIGHT_DECORATION = vscode.window.createTextEditorDecorationType({
     color: 'var(--vscode-editor-foreground)'
 });
@@ -27,7 +27,10 @@ export class Codehopper {
     set matchCase(matchCase) {
         this.context.globalState.update(MATCH_CASE_STATE_KEY, matchCase);
 
-        if (this.inputBox) this.createButtons(this.inputBox);
+        if (this.inputBox) {
+            this.createButtons(this.inputBox);
+            this.search(this.inputBox.value);
+        }
     }
 
     constructor(private readonly context: vscode.ExtensionContext) { }
