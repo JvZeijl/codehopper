@@ -1,8 +1,11 @@
 {
   "name": "codehopper",
   "displayName": "Codehopper",
+  "author": "JvZeijl",
+  "publisher": "jvzeijl",
   "description": "",
   "version": "0.0.1",
+  "repository": "https://github.com/JvZeijl/codehopper",
   "engines": {
     "vscode": "^1.92.0"
   },
