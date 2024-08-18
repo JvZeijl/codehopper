@@ -1,14 +1,13 @@
 import * as vscode from "vscode";
 import { getSetting } from "./settings";
 import { getLabelDecorations, getOccurences, setHighlights } from "./highlighting";
-import { MATCH_CASE_STATE_KEY } from "./extension";
 
 const NO_HIGHLIGHT_DECORATION = vscode.window.createTextEditorDecorationType({
     color: 'var(--vscode-editor-foreground)'
 });
 
 export class Codehopper {
-    private disableHighlightingWhenHopping = getSetting('disableHighlightingWhenHopping', false);
+    private disableHighlightingWhenHopping = getSetting('disableHighlightingDuringSearch', false);
 
     private activeTextEditor: vscode.TextEditor | null = null;
     private inputBox: vscode.InputBox | null = null;
@@ -21,16 +20,12 @@ export class Codehopper {
     private scrollListener: vscode.Disposable | null = null;
     
     get matchCase() {
-        return this.context.globalState.get<boolean>(MATCH_CASE_STATE_KEY, false);
+        return this.context.globalState.get<boolean>('codehopperMatchCase', false);
     }
 
     set matchCase(matchCase) {
-        this.context.globalState.update(MATCH_CASE_STATE_KEY, matchCase);
-
-        if (this.inputBox) {
-            this.createButtons(this.inputBox);
-            this.search(this.inputBox.value);
-        }
+        this.context.globalState.update('codehopperMatchCase', matchCase);
+        this.refresh();
     }
 
     constructor(private readonly context: vscode.ExtensionContext) { }
@@ -65,9 +60,7 @@ export class Codehopper {
             return;
         }
     
-        if (this.disableHighlightingWhenHopping) {
-            this.activeTextEditor.setDecorations(NO_HIGHLIGHT_DECORATION, []);
-        }
+        this.activeTextEditor.setDecorations(NO_HIGHLIGHT_DECORATION, []);
         
         this.clearLabels();
         this.scrollListener?.dispose();
@@ -80,6 +73,23 @@ export class Codehopper {
     toggleMatchCase() {
         this.matchCase = !this.matchCase;
     }
+
+    isActive() {
+		return this.activeTextEditor !== null;
+	}
+
+    refresh() {
+        this.disableHighlightingWhenHopping = getSetting('disableHighlightingDuringSearch', false);
+
+		if (this.inputBox) {
+            this.createButtons(this.inputBox);
+            this.search(this.inputBox.value);
+        }
+
+        if (this.activeTextEditor) {
+            this.activeTextEditor.setDecorations(NO_HIGHLIGHT_DECORATION, this.disableHighlightingWhenHopping ? this.activeTextEditor.visibleRanges : []);
+        }
+	}
     
     private search(searchStr: string) {
         if (this.activeTextEditor === null || this.inputBox === null) {
@@ -101,7 +111,7 @@ export class Codehopper {
             const matchStr = this.activeTextEditor.document.getText(this.currentRanges[i]) + this.currentLabels[i];
             if ((this.matchCase && matchStr === searchStr) || matchStr.toLowerCase() === searchStr.toLowerCase()) {
                 this.selectAndClose(this.currentRanges[i]);
-                break;
+                return;
             }
         }
 

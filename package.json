@@ -16,6 +16,14 @@
       {
         "command": "codehopper.openHopper",
         "title": "Open codehopper"
+      },
+      {
+        "command": "codehopper.toggleMatchCase",
+        "title": "Toggle match case"
+      },
+      {
+        "command": "codehopper.toggleHighlightDuringSearch",
+        "title": "Toggle syntax highlighting disabled during search"
       }
     ],
     "keybindings": [
@@ -29,16 +37,21 @@
         "command": "codehopper.toggleMatchCase",
         "key": "ctrl+' c",
         "mac": "cmd+' c"
+      },
+      {
+        "command": "codehopper.toggleHighlightDuringSearch",
+        "key": "ctrl+' h",
+        "mac": "cmd+' h"
       }
     ],
     "configuration": [
       {
         "title": "Codehopper",
         "properties": {
-          "codehopper.disableHighlightingWhenHopping": {
+          "codehopper.disableHighlightingDuringSearch": {
             "type": "boolean",
-            "default": true,
-            "description": "Determines if all the syntax highlighting is disabled during hopping."
+            "default": false,
+            "description": "Determines if all the syntax highlighting is disabled during search."
           },
           "codehopper.segmentLabels": {
             "type": "string",

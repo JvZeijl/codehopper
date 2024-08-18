@@ -1,13 +1,11 @@
 import * as vscode from 'vscode';
 import { Codehopper } from './codehopper';
 
-export const MATCH_CASE_STATE_KEY = 'codehopperMatchCase';
-
 export function activate(context: vscode.ExtensionContext) {
 	let codehopper = new Codehopper(context);
 	
 	const settingsListener = vscode.workspace.onDidChangeConfiguration(changeEvent => {
-		if (changeEvent.affectsConfiguration('codehopper')) codehopper = new Codehopper(context);
+		if (changeEvent.affectsConfiguration('codehopper')) codehopper.refresh();
 	});
 
 	const openHopperCommand = vscode.commands.registerTextEditorCommand('codehopper.openHopper', textEditor => {
@@ -18,7 +16,12 @@ export function activate(context: vscode.ExtensionContext) {
 		codehopper.toggleMatchCase();
 	});
 
-	context.subscriptions.push(settingsListener, openHopperCommand, toggleMatchCaseCommand);
+	const toggleHightlightCommand = vscode.commands.registerCommand('codehopper.toggleHighlightDuringSearch', () => {
+		const disabled = vscode.workspace.getConfiguration('codehopper').get<boolean>('disableHighlightingDuringSearch');
+		vscode.workspace.getConfiguration('codehopper').update('disableHighlightingDuringSearch', !disabled, true);
+	});
+
+	context.subscriptions.push(settingsListener, openHopperCommand, toggleMatchCaseCommand, toggleHightlightCommand);
 }
 
 export function deactivate() {

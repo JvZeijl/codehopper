@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 export type SettingNames = keyof Settings;
 export type Settings = {
-    disableHighlightingWhenHopping: boolean,
+    disableHighlightingDuringSearch: boolean,
     segmentLabels: string
 };
 
